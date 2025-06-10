@@ -10,7 +10,7 @@ def callback(ch, method, properties, body):
         "matrikelnummer": data["matrikelnummer"],
         "studiengang": data["studiengang"]
     }
-
+    
     # Nachricht für WyseFlow (mit Credits)
     wyseflow_data = {
         "name": data["name"],
@@ -32,3 +32,21 @@ def callback(ch, method, properties, body):
     )
 
     print(f"[Middleware] Weitergeleitet an beide Systeme: {data['name']}")
+# Verbindung und Channel aufbauen
+connection = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
+channel = connection.channel()
+
+# Queues deklarieren
+channel.queue_declare(queue="middleware_queue")
+channel.queue_declare(queue="peregos_queue")
+channel.queue_declare(queue="wyseflow_queue")
+
+# Middleware konsumiert von der Eingangs-Queue
+channel.basic_consume(
+    queue="middleware_queue",
+    on_message_callback=callback,
+    auto_ack=True
+)
+
+print("[Middleware] Warte auf eingehende Anträge …")
+channel.start_consuming()
