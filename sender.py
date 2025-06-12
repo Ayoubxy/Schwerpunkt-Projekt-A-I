@@ -1,7 +1,7 @@
 import pika
 import json
 
-# --- Studiengangs-Daten im HIS (Sender) ---
+# --- Studiengangs-Daten im HIS (alle Keys in lowercase!) ---
 studiengangs_info = {
     "wirtschaft": {"startdatum": "2025-05-01", "credits": 0},
     "maschinenbau": {"startdatum": "2025-04-15", "credits": 0},
@@ -20,19 +20,21 @@ studiengangs_info = {
 def eingabe_student():
     name = input("Name des Studenten: ")
     matrikelnummer = input("Matrikelnummer: ")
-    studiengang = input("Studiengang: ")
+    studiengang_input = input("Studiengang: ").strip().lower()
 
-    key = studiengang.lower()
-    if key not in studiengangs_info:
+    if studiengang_input not in studiengangs_info:
         print("[HIS] Fehler: Studiengang nicht bekannt.")
+        print("[HIS] Verfügbare Studiengänge:", ", ".join(studiengangs_info.keys()))
         return None
+
+    info = studiengangs_info[studiengang_input]
 
     student = {
         "name": name,
         "matrikelNummer": matrikelnummer,
-        "studiengang": studiengang,
-        "startdatum": studiengangs_info[key]["startdatum"],
-        "credits": studiengangs_info[key]["credits"]
+        "studiengang": studiengang_input,
+        "startdatum": info["startdatum"],
+        "credits": info["credits"]
     }
     return student
 

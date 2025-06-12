@@ -17,19 +17,25 @@ def callback(ch, method, properties, body):
         heute = datetime.today()
         monate_diff = (heute.year - start.year) * 12 + (heute.month - start.month)
 
-        # Routing-Logik basierend auf credits & Startzeit
-        if monate_diff <= 3 or student["credits"] == 0:
-            routing_key = "peregos"
-        else:
-            routing_key = "wyseflow"
+        # --- Nachricht an Peregos vorbereiten (ohne Credits) ---
+        student_peregos = dict(student)
+        student_peregos.pop("credits", None)
 
         channel.basic_publish(
             exchange='student_exchange',
-            routing_key=routing_key,
-            body=json.dumps(student)
+            routing_key='peregos',
+            body=json.dumps(student_peregos)
         )
+        print(f"[MIDDLEWARE] An peregos gesendet: {student['name']}")
 
-        print(f"[MIDDLEWARE] Weitergeleitet an {routing_key}: {student['name']}")
+        # --- Nachricht an WyseFlow nur wenn Bedingungen erfüllt ---
+        if monate_diff > 3 and student["credits"] > 0:
+            channel.basic_publish(
+                exchange='student_exchange',
+                routing_key='wyseflow',
+                body=json.dumps(student)
+            )
+            print(f"[MIDDLEWARE] An wyseflow gesendet: {student['name']}")
 
     except Exception as e:
         print("[MIDDLEWARE] Fehler bei der Verarbeitung:", e)
