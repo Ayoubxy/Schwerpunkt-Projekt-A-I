@@ -1,34 +1,54 @@
 import pika
 import json
 
-# Verbindung zu RabbitMQ aufbauen
-connection = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
-channel = connection.channel()
+# --- Studiengangs-Daten im HIS (Sender) ---
+studiengangs_info = {
+    "wirtschaft": {"startdatum": "2025-05-01", "credits": 0},
+    "maschinenbau": {"startdatum": "2025-04-15", "credits": 0},
+    "elektrotechnik": {"startdatum": "2022-04-01", "credits": 90},
+    "medieninformatik": {"startdatum": "2023-09-01", "credits": 50},
+    "informatik": {"startdatum": "2021-10-01", "credits": 180},
+    "soziale arbeit": {"startdatum": "2025-06-01", "credits": 0},
+    "bauingenieurwesen": {"startdatum": "2024-12-01", "credits": 10},
+    "wirtschaftsinformatik": {"startdatum": "2025-03-01", "credits": 0},
+    "biotechnologie": {"startdatum": "2023-03-01", "credits": 60},
+    "architektur": {"startdatum": "2025-04-10", "credits": 5},
+    "politikwissenschaft": {"startdatum": "2022-09-01", "credits": 120},
+    "psychologie": {"startdatum": "2025-01-20", "credits": 2}
+}
 
-# Die zentrale Eingangsschlange der Middleware
-channel.queue_declare(queue="middleware_queue")
-
-# Benutzereingaben über die Konsole
 def eingabe_student():
     name = input("Name des Studenten: ")
     matrikelnummer = input("Matrikelnummer: ")
     studiengang = input("Studiengang: ")
 
-    return {
+    key = studiengang.lower()
+    if key not in studiengangs_info:
+        print("[HIS] Fehler: Studiengang nicht bekannt.")
+        return None
+
+    student = {
         "name": name,
         "matrikelNummer": matrikelnummer,
-        "studiengang": studiengang
+        "studiengang": studiengang,
+        "startdatum": studiengangs_info[key]["startdatum"],
+        "credits": studiengangs_info[key]["credits"]
     }
+    return student
 
-# Einzelne Eingabe senden
+# Verbindung zu RabbitMQ
+connection = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
+channel = connection.channel()
+channel.queue_declare(queue="middleware_queue")
+
 student = eingabe_student()
-message = json.dumps(student)
-channel.basic_publish(
-    exchange='',
-    routing_key='middleware_queue',
-    body=message
-)
-print(f"[SENDER] Gesendet: {student['name']} ({student['studiengang']})")
+if student:
+    message = json.dumps(student)
+    channel.basic_publish(
+        exchange='',
+        routing_key='middleware_queue',
+        body=message
+    )
+    print(f"[SENDER] Gesendet: {student['name']} ({student['studiengang']})")
 
-# Verbindung schließen
 connection.close()
