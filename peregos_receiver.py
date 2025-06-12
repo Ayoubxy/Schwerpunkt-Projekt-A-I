@@ -7,6 +7,7 @@ def callback(ch, method, properties, body):
     print(f"Name: {data['name']}")
     print(f"Matrikelnummer: {data['matrikelNummer']}")
     print(f"Studiengang: {data['studiengang']}")
+    print(f"Startdatum: {data['startdatum']}")
 
 # Verbindung zu RabbitMQ
 connection = pika.BlockingConnection(pika.ConnectionParameters("localhost"))

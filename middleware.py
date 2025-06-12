@@ -2,6 +2,7 @@ import pika
 import json
 from datetime import datetime
 
+
 # --- Studiengangs-Daten direkt in der Middleware ---
 studiengangs_info = [
     {"studiengang": "Wirtschaft", "startdatum": "2025-05-01", "credits": 0},
