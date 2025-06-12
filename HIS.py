@@ -1,7 +1,9 @@
 import pika
 import json
+import tkinter as tk
+from tkinter import messagebox
 
-# --- Studiengangs-Daten im HIS (alle Keys in lowercase!) ---
+# Studiengangsdatenbank
 studiengangs_info = {
     "wirtschaft": {"startdatum": "2025-05-01", "credits": 0},
     "maschinenbau": {"startdatum": "2025-04-15", "credits": 0},
@@ -17,40 +19,63 @@ studiengangs_info = {
     "psychologie": {"startdatum": "2025-01-20", "credits": 2}
 }
 
-def eingabe_student():
-    name = input("Name des Studenten: ")
-    matrikelnummer = input("Matrikelnummer: ")
-    studiengang_input = input("Studiengang: ").strip().lower()
+def sende_student():
+    name = entry_name.get()
+    matrikelnummer = entry_matrikel.get()
+    studiengang = entry_studiengang.get().strip().lower()
 
-    if studiengang_input not in studiengangs_info:
-        print("[HIS] Fehler: Studiengang nicht bekannt.")
-        print("[HIS] Verfügbare Studiengänge:", ", ".join(studiengangs_info.keys()))
-        return None
+    if not name or not matrikelnummer or not studiengang:
+        messagebox.showerror("Fehler", "Bitte alle Felder ausfüllen.")
+        return
 
-    info = studiengangs_info[studiengang_input]
+    if studiengang not in studiengangs_info:
+        messagebox.showerror("Fehler", f"Studiengang nicht bekannt.\n\nVerfügbare:\n" +
+                             ", ".join(studiengangs_info.keys()))
+        return
+
+    info = studiengangs_info[studiengang]
 
     student = {
         "name": name,
         "matrikelNummer": matrikelnummer,
-        "studiengang": studiengang_input,
+        "studiengang": studiengang,
         "startdatum": info["startdatum"],
         "credits": info["credits"]
     }
-    return student
 
-# Verbindung zu RabbitMQ
-connection = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
-channel = connection.channel()
-channel.queue_declare(queue="middleware_queue")
+    try:
+        connection = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
+        channel = connection.channel()
+        channel.queue_declare(queue="middleware_queue")
+        message = json.dumps(student)
+        channel.basic_publish(exchange='', routing_key='middleware_queue', body=message)
+        connection.close()
 
-student = eingabe_student()
-if student:
-    message = json.dumps(student)
-    channel.basic_publish(
-        exchange='',
-        routing_key='middleware_queue',
-        body=message
-    )
-    print(f"[SENDER] Gesendet: {student['name']} ({student['studiengang']})")
+        messagebox.showinfo("Gesendet", f"{name} ({studiengang}) wurde erfolgreich übermittelt.")
+        entry_name.delete(0, tk.END)
+        entry_matrikel.delete(0, tk.END)
+        entry_studiengang.delete(0, tk.END)
 
-connection.close()
+    except Exception as e:
+        messagebox.showerror("RabbitMQ Fehler", str(e))
+
+# GUI Aufbau
+root = tk.Tk()
+root.title("HIS – Studentendaten eingeben")
+root.geometry("400x300")
+
+tk.Label(root, text="Name des Studenten").pack()
+entry_name = tk.Entry(root, width=40)
+entry_name.pack()
+
+tk.Label(root, text="Matrikelnummer").pack()
+entry_matrikel = tk.Entry(root, width=40)
+entry_matrikel.pack()
+
+tk.Label(root, text="Studiengang").pack()
+entry_studiengang = tk.Entry(root, width=40)
+entry_studiengang.pack()
+
+tk.Button(root, text="Daten senden", command=sende_student).pack(pady=20)
+
+root.mainloop()
