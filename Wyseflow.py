@@ -5,16 +5,16 @@ from threading import Thread
 
 # GUI-Fenster vorbereiten
 root = tk.Tk()
-root.title("WyseFlow – Abschlussarbeitsanträge")
+root.title("WyseFlow – Thesis applications")
 root.geometry("600x400")
 
 text_area = tk.Text(root, wrap=tk.WORD, height=20, width=70)
 text_area.pack(padx=10, pady=10)
-text_area.insert(tk.END, "[WYSEFLOW] Warte auf Abschlussarbeitsanträge …\n")
+text_area.insert(tk.END, "[WYSEFLOW] Waiting for thesis applications …\n")
 
 def zeige_daten(data):
     antrag = (
-        f"\n--- Abschlussarbeit beantragt ---\n"
+        f"\n--- Thesis application submitted ---\n"
         f"Name: {data['name']}\n"
         f"Matrikelnummer: {data['matrikelNummer']}\n"
         f"Studiengang: {data['studiengang']}\n"
@@ -41,7 +41,7 @@ def empfange_nachrichten():
         channel.basic_consume(queue="queue_wyseflow", on_message_callback=callback, auto_ack=True)
         channel.start_consuming()
     except Exception as e:
-        text_area.insert(tk.END, f"\n[Fehler bei Verbindung]: {e}\n")
+        text_area.insert(tk.END, f"\n[Connection error]: {e}\n")
 
 # Starte Empfang im Thread
 thread = Thread(target=empfange_nachrichten, daemon=True)

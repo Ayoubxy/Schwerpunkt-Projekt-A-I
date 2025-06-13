@@ -5,16 +5,16 @@ from threading import Thread
 
 # GUI-Setup
 root = tk.Tk()
-root.title("Peregos – Anträge")
+root.title("Peregos – Applications")
 root.geometry("500x400")
 
 text_area = tk.Text(root, wrap=tk.WORD, height=20, width=60)
 text_area.pack(padx=10, pady=10)
-text_area.insert(tk.END, "[PEREGOS] Warte auf Anträge …\n")
+text_area.insert(tk.END, "[PEREGOS] Waiting for applications …\n")
 
 def zeige_daten(data):
     antrag = (
-        f"\n--- Antrag eingegangen ---\n"
+        f"\n--- Application received ---\n"
         f"Name: {data['name']}\n"
         f"Matrikelnummer: {data['matrikelNummer']}\n"
         f"Studiengang: {data['studiengang']}\n"
@@ -39,7 +39,7 @@ def empfange_nachrichten():
         channel.basic_consume(queue="queue_peregos", on_message_callback=callback, auto_ack=True)
         channel.start_consuming()
     except Exception as e:
-        text_area.insert(tk.END, f"\n[Fehler bei Verbindung]: {e}\n")
+        text_area.insert(tk.END, f"\n[Connection error]: {e}\n")
 
 # Starte den Empfangs-Thread
 thread = Thread(target=empfange_nachrichten, daemon=True)

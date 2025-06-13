@@ -26,7 +26,7 @@ def callback(ch, method, properties, body):
             routing_key='peregos',
             body=json.dumps(student_peregos)
         )
-        print(f"[MIDDLEWARE] An peregos gesendet: {student['name']}")
+        print(f"[MIDDLEWARE] Sent to Peregos: {student['name']}")
 
         # --- Nachricht an WyseFlow nur wenn Bedingungen erfüllt ---
         if monate_diff > 3 and student["credits"] > 0:
@@ -35,12 +35,12 @@ def callback(ch, method, properties, body):
                 routing_key='wyseflow',
                 body=json.dumps(student)
             )
-            print(f"[MIDDLEWARE] An wyseflow gesendet: {student['name']}")
+            print(f"[MIDDLEWARE] Sent to Wyseflow: {student['name']}")
 
     except Exception as e:
-        print("[MIDDLEWARE] Fehler bei der Verarbeitung:", e)
+        print("[MIDDLEWARE] Error during processing:", e)
 
 channel.basic_consume(queue='middleware_queue', on_message_callback=callback, auto_ack=True)
 
-print("[MIDDLEWARE] Läuft und wartet auf Nachrichten...")
+print("[MIDDLEWARE] Running and waiting for messages...")
 channel.start_consuming()

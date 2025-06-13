@@ -25,11 +25,11 @@ def sende_student():
     studiengang = entry_studiengang.get().strip().lower()
 
     if not name or not matrikelnummer or not studiengang:
-        messagebox.showerror("Fehler", "Bitte alle Felder ausfüllen.")
+        messagebox.showerror("Error", "Please fill in all fields.")
         return
 
     if studiengang not in studiengangs_info:
-        messagebox.showerror("Fehler", f"Studiengang nicht bekannt.\n\nVerfügbare:\n" +
+        messagebox.showerror("Error", f"Study program not recognized.\n\nAvailable options:\n" +
                              ", ".join(studiengangs_info.keys()))
         return
 
@@ -51,7 +51,7 @@ def sende_student():
         channel.basic_publish(exchange='', routing_key='middleware_queue', body=message)
         connection.close()
 
-        messagebox.showinfo("Gesendet", f"{name} ({studiengang}) wurde erfolgreich übermittelt.")
+        messagebox.showinfo("Send", f"{name} ({studiengang}) was successfully submitted.")
         entry_name.delete(0, tk.END)
         entry_matrikel.delete(0, tk.END)
         entry_studiengang.delete(0, tk.END)
@@ -61,21 +61,21 @@ def sende_student():
 
 # GUI Aufbau
 root = tk.Tk()
-root.title("HIS – Studentendaten eingeben")
+root.title("HIS – Enter student data")
 root.geometry("400x300")
 
-tk.Label(root, text="Name des Studenten").pack()
+tk.Label(root, text="Student's name").pack()
 entry_name = tk.Entry(root, width=40)
 entry_name.pack()
 
-tk.Label(root, text="Matrikelnummer").pack()
+tk.Label(root, text="Student ID").pack()
 entry_matrikel = tk.Entry(root, width=40)
 entry_matrikel.pack()
 
-tk.Label(root, text="Studiengang").pack()
+tk.Label(root, text="Study program").pack()
 entry_studiengang = tk.Entry(root, width=40)
 entry_studiengang.pack()
 
-tk.Button(root, text="Daten senden", command=sende_student).pack(pady=20)
+tk.Button(root, text="Send Data", command=sende_student).pack(pady=20)
 
 root.mainloop()
