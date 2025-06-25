@@ -41,7 +41,7 @@ def empfange_nachrichten():
         channel.basic_consume(queue="queue_wyseflow", on_message_callback=callback, auto_ack=True)
         channel.start_consuming()
     except Exception as e:
-        text_area.insert(tk.END, f"\n[Connection error] , [Rabbit MQ not available, please try again in a few minutes]: {e}\n")
+        text_area.insert(tk.END, f"\n[Connection error. Rabbit MQ not available, please try again in a few minutes]: {e}\n")
 
 # Starte Empfang im Thread
 thread = Thread(target=empfange_nachrichten, daemon=True)
